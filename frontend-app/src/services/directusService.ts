@@ -1,0 +1,36 @@
+import axios from 'axios';
+
+const API_URL = 'http://localhost:8055';
+
+const api = axios.create({
+  baseURL: API_URL,
+});
+
+// Fungsi untuk mendapatkan data dari koleksi tertentu
+export const fetchCollectionData = async <T>(collectionName: string): Promise<T[]> => {
+  try {
+    const response = await api.get(`/items/${collectionName}`);
+    return response.data.data;
+  } catch (error) {
+    console.error(`Error fetching ${collectionName}:`, error);
+    if (axios.isAxiosError(error)) {
+      throw new Error(`Axios error: ${error.response?.status} ${error.message}`);
+    }
+    throw new Error('Unknown error occurred');
+  }
+};
+
+// Fungsi untuk mendapatkan relasi kompleks
+export const fetchInstrumentDetails = async (instrumentId: number) => {
+  try {
+    // const response = await api.get(`/items/instruments/${instrumentId}?fields=*,students.students_id.id,students.students_id.first_name,students.students_id.last_name,teachers.teachers_id.id,teachers.teachers_id.first_name,teachers.teachers_id.last_name`);
+    const response = await api.get(`/items/instruments/${instrumentId}?fields=*,students.students_id.*`);
+    console.log("Selected Instrument:", response.data.data);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching instrument details:', error);
+    throw error;
+  }
+};
+
+export default api;
