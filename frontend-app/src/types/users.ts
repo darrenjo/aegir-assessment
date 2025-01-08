@@ -1,7 +1,15 @@
-export interface DirectusUser {
-    id: string; // ID user
+export interface Student {
+  students_id: {
+    id: string;
     first_name: string;
     last_name: string;
-    // email?: string; // Jika ada kolom email
-  }
-  
+  };
+}
+
+export interface Teacher {
+  teachers_id: {
+    id: string;
+    first_name: string;
+    last_name: string;
+  };
+}

@@ -24,11 +24,37 @@ export const fetchCollectionData = async <T>(collectionName: string): Promise<T[
 export const fetchInstrumentDetails = async (instrumentId: number) => {
   try {
     // const response = await api.get(`/items/instruments/${instrumentId}?fields=*,students.students_id.id,students.students_id.first_name,students.students_id.last_name,teachers.teachers_id.id,teachers.teachers_id.first_name,teachers.teachers_id.last_name`);
-    const response = await api.get(`/items/instruments/${instrumentId}?fields=*,students.students_id.*`);
+    const response = await api.get(`/items/instruments/${instrumentId}?fields=*,students.students_id.*,teachers.teachers_id.*`);
     console.log("Selected Instrument:", response.data.data);
     return response.data.data;
   } catch (error) {
     console.error('Error fetching instrument details:', error);
+    throw error;
+  }
+};
+
+// Fungsi untuk mendapatkan relasi kompleks
+export const fetchStudentDetails = async (studentId: string) => {
+  try {
+    // const response = await api.get(`/items/instruments/${instrumentId}?fields=*,students.students_id.id,students.students_id.first_name,students.students_id.last_name,teachers.teachers_id.id,teachers.teachers_id.first_name,teachers.teachers_id.last_name`);
+    const response = await api.get(`/items/packages/?fields=*&filter[student]=${studentId}`);
+    console.log("Selected Student Details:", response.data.data);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching student details:', error);
+    throw error;
+  }
+};
+
+// Fungsi untuk mendapatkan relasi kompleks
+export const fetchStudentSchedule = async (studentId: string, instrumentId: number) => {
+  try {
+    // const response = await api.get(`/items/instruments/${instrumentId}?fields=*,students.students_id.id,students.students_id.first_name,students.students_id.last_name,teachers.teachers_id.id,teachers.teachers_id.first_name,teachers.teachers_id.last_name`);
+    const response = await api.get(`/items/packages/?fields=id,student,instrument,lessons,lessons.package.start_datetime&filter[student]=${studentId}&filter[instrument]=${instrumentId}`);
+    console.log("Selected Schedule Details:", response.data.data);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching student schedule details:', error);
     throw error;
   }
 };

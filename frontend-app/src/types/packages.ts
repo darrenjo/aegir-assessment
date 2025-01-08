@@ -1,6 +1,11 @@
-import { Lesson } from './lessons';
+// import { Lesson } from './lessons';
 import { Payment } from './payments';
 
+export interface Schedule {
+  data: {
+    id: string;
+  };
+}
 export interface Package {
     id: number;
     status: 'Published' | 'Draft' | 'Archived';
@@ -15,7 +20,7 @@ export interface Package {
     end_datetime: string;
     duration: number;
     remarks: string;
-    lessons: Lesson[];
+    lessons?: Schedule[];
     payments: Payment[];
     lesson_quota: number;
   }

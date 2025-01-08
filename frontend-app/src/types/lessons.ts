@@ -1,3 +1,9 @@
+export interface Schedule {
+  data: {
+    id: string;
+  };
+}
+
 export interface Lesson {
     id: number;
     sort: number;
@@ -7,7 +13,7 @@ export interface Lesson {
     date_updated: string;
     package: number;
     teacher: string;
-    start_datetime: string;
+    start_datetime?: Schedule[];
     status: 'Attended' | 'Absent';
     remarks: string;
   }
