@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import {
   fetchCollectionData,
+  fetchCollectionUsersData,
   fetchInstrumentDetails,
   fetchStudentDetails,
   fetchStudentSchedule,
 } from "./services/directusService";
 import { Instrument } from "./types/instruments";
-import { Student } from "./types/users";
+import { Student, User } from "./types/users";
 import { Schedule } from "./types/lessons";
 
 const App: React.FC = () => {
@@ -14,8 +15,12 @@ const App: React.FC = () => {
   const [selectedInstrument, setSelectedInstrument] =
     useState<Instrument | null>(null);
 
-  const [students, setStudents] = useState<Student[]>([]);
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [expandedStudentId, setExpandedStudentId] = useState<string | null>(
+    null
+  );
+  // const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [studentDetails, setStudentDetails] = useState<Student | null>(null);
 
   const [schedules, setSchedules] = useState<Student[]>([]);
   const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(
@@ -35,8 +40,12 @@ const App: React.FC = () => {
         const data = await fetchCollectionData<Instrument>("instruments");
         console.log("Fetched Instruments:", data); // Debugging log
         setInstruments(data);
+
+        const dataUsers = await fetchCollectionUsersData<User>("users");
+        console.log("Fetched Students:", dataUsers); // Debugging log
+        setUsers(dataUsers);
       } catch (error) {
-        console.error("Error fetching instruments:", error);
+        console.error("Error fetching students:", error);
       }
     };
 
@@ -56,14 +65,22 @@ const App: React.FC = () => {
   };
 
   const handleViewDetailsStudent = async (studentId: string) => {
-    try {
-      const studentDetails = await fetchStudentDetails(studentId);
-      // console.log("Instrument Details:", instrumentDetails); // Debugging log
-      setSelectedStudent(studentDetails);
-      // console.log("Students Array:", instrumentDetails.students);
-      console.log("Student Details Data:", studentDetails);
-    } catch (error) {
-      console.error("Error fetching student details:", error);
+    if (expandedStudentId === studentId) {
+      // Jika mahasiswa sudah diperluas, tutup detailnya
+      setExpandedStudentId(null);
+      setStudentDetails(null);
+    } else {
+      try {
+        const studentDetails = await fetchStudentDetails(studentId);
+        // console.log("Instrument Details:", instrumentDetails); // Debugging log
+        // setSelectedStudent(studentDetails);
+        // console.log("Students Array:", instrumentDetails.students);
+        setExpandedStudentId(studentId);
+        setStudentDetails(studentDetails);
+        // console.log("Student Details Data:", studentDetails);
+      } catch (error) {
+        console.error("Error fetching student details:", error);
+      }
     }
   };
 
@@ -87,6 +104,52 @@ const App: React.FC = () => {
 
   return (
     <div>
+      <h1>Users</h1>
+      <ul>
+        {users.map((user) => (
+          <li key={user.id}>
+            {user.first_name} {user.last_name}
+            <button onClick={() => handleViewDetailsStudent(user.id)}>
+              {expandedStudentId === user.id
+                ? "Hide Student Details"
+                : "View Student Details"}
+            </button>
+            {expandedStudentId === user.id && studentDetails && (
+              <div style={{ marginTop: "10px", paddingLeft: "20px" }}>
+                <p>
+                  <strong>ID:</strong> {user.id}
+                </p>
+                <p>
+                  <strong>First Name:</strong> {user.first_name}
+                </p>
+                <p>
+                  <strong>Last Name:</strong> {user.last_name}
+                </p>
+                <p>
+                  <strong>Email:</strong> {user.email}
+                </p>
+                <p>
+                  <strong>Status:</strong> {user.status}
+                </p>
+                <p>
+                  <strong>Instruments:</strong>{" "}
+                  {user.student_instruments &&
+                  user.student_instruments.length > 0
+                    ? user.student_instruments
+                        .map(
+                          (relation) =>
+                            relation.instruments_id?.name || "Unknown"
+                        )
+                        .join(", ")
+                    : "No Instruments Assigned"}
+                </p>
+                {/* Tambahkan data lain yang relevan */}
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+
       <h1>Instruments</h1>
       <ul>
         {instruments.map((instrument) => (
@@ -123,8 +186,31 @@ const App: React.FC = () => {
                   <button
                     onClick={() => handleViewDetailsStudent(studentData.id)}
                   >
-                    View Student Details
+                    {expandedStudentId === studentData.id
+                      ? "Hide Student Details"
+                      : "View Student Details"}
                   </button>
+                  {expandedStudentId === studentData.id && studentDetails && (
+                    <div style={{ marginTop: "10px", paddingLeft: "20px" }}>
+                      <p>
+                        <strong>First Name:</strong> {studentData.first_name}
+                      </p>
+                      <p>
+                        <strong>Last Name:</strong> {studentData.last_name}
+                      </p>
+                      <p>
+                        <strong>Email:</strong> {studentData.email}
+                      </p>
+                      <p>
+                        <strong>Status:</strong> {studentData.status}
+                      </p>
+                      {/* <p>
+                        <strong>Instruments:</strong>{" "}
+                        {studentData.student_instruments.instruments_id.name}
+                      </p> */}
+                      {/* Tambahkan data lain yang relevan */}
+                    </div>
+                  )}
                   <button
                     onClick={() =>
                       handleViewSchedule(studentData.id, selectedInstrument.id)

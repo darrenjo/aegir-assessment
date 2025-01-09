@@ -14,6 +14,7 @@ export interface Lesson {
     package: number;
     teacher: string;
     start_datetime?: Schedule[];
+    // start_datetime: string;
     status: 'Attended' | 'Absent';
     remarks: string;
   }

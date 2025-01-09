@@ -20,11 +20,25 @@ export const fetchCollectionData = async <T>(collectionName: string): Promise<T[
   }
 };
 
+// Fungsi untuk mendapatkan data dari users
+export const fetchCollectionUsersData = async <T>(collectionName: string): Promise<T[]> => {
+  try {
+    const response = await api.get(`/${collectionName}?fields=*,student_instruments.instruments_id.id,student_instruments.instruments_id.name`);
+    return response.data.data;
+  } catch (error) {
+    console.error(`Error fetching ${collectionName}:`, error);
+    if (axios.isAxiosError(error)) {
+      throw new Error(`Axios error: ${error.response?.status} ${error.message}`);
+    }
+    throw new Error('Unknown error occurred');
+  }
+};
+
 // Fungsi untuk mendapatkan relasi kompleks
 export const fetchInstrumentDetails = async (instrumentId: number) => {
   try {
     // const response = await api.get(`/items/instruments/${instrumentId}?fields=*,students.students_id.id,students.students_id.first_name,students.students_id.last_name,teachers.teachers_id.id,teachers.teachers_id.first_name,teachers.teachers_id.last_name`);
-    const response = await api.get(`/items/instruments/${instrumentId}?fields=*,students.students_id.*,teachers.teachers_id.*`);
+    const response = await api.get(`/items/instruments/${instrumentId}?fields=*,students.students_id.student_instruments.id,students.students_id.*,teachers.teachers_id.*`);
     console.log("Selected Instrument:", response.data.data);
     return response.data.data;
   } catch (error) {
@@ -37,7 +51,8 @@ export const fetchInstrumentDetails = async (instrumentId: number) => {
 export const fetchStudentDetails = async (studentId: string) => {
   try {
     // const response = await api.get(`/items/instruments/${instrumentId}?fields=*,students.students_id.id,students.students_id.first_name,students.students_id.last_name,teachers.teachers_id.id,teachers.teachers_id.first_name,teachers.teachers_id.last_name`);
-    const response = await api.get(`/items/packages/?fields=*&filter[student]=${studentId}`);
+    // const response = await api.get(`/items/packages/?fields=*&filter[student]=${studentId}`);
+    const response = await api.get(`/users/${studentId}?fields=*,student_instruments.instruments_id.id,student_instruments.instruments_id.name`);
     console.log("Selected Student Details:", response.data.data);
     return response.data.data;
   } catch (error) {
