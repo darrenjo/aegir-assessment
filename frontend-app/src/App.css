@@ -1,0 +1,40 @@
+.table-container {
+    @apply p-4;
+  }
+  
+  .table-title {
+    @apply text-2xl font-bold mb-4;
+  }
+  
+  .search-input {
+    @apply border border-gray-300 rounded-lg px-4 py-2 w-full mb-4;
+  }
+  
+  .table-wrapper {
+    @apply overflow-x-auto;
+  }
+  
+  .table {
+    @apply min-w-full bg-white border border-gray-200;
+  }
+  
+  .table-header {
+    @apply bg-gray-100 text-left text-gray-600 font-medium;
+  }
+  
+  .table-header-cell {
+    @apply px-4 py-2 cursor-pointer;
+  }
+  
+  .table-row {
+    @apply border-t border-gray-200;
+  }
+  
+  .table-cell {
+    @apply px-4 py-2;
+  }
+  
+  .action-button {
+    @apply bg-blue-500 text-white px-4 py-2 rounded-lg;
+  }
+  

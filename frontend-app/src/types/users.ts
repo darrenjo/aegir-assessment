@@ -12,6 +12,12 @@ export interface Student {
           name: string;
         };
     }>;
+    teacher_instruments: Array <{
+      instruments_id: {
+        id: number;
+        name: string;
+      };
+    }>;
   };
 }
 
@@ -19,6 +25,7 @@ export interface User {
     id: string;
     first_name: string;
     last_name: string;
+    role: string;
     email: string;
     status: string;
     student_instruments: Array <{
@@ -27,12 +34,31 @@ export interface User {
         name: string;
       };
   }>;
+  teacher_instruments: Array <{
+    instruments_id: {
+      id: number;
+      name: string;
+    };
+  }>;
 }
 
 export interface Teacher {
-  teachers_id: {
-    id: string;
-    first_name: string;
-    last_name: string;
+  id: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+  email: string;
+  status: string;
+  student_instruments: Array <{
+    instruments_id: {
+      id: number;
+      name: string;
+    };
+}>;
+teacher_instruments: Array <{
+  instruments_id: {
+    id: number;
+    name: string;
   };
+}>;
 }

@@ -5,10 +5,12 @@ import {
   fetchInstrumentDetails,
   fetchStudentDetails,
   fetchStudentSchedule,
+  fetchRoleDetails,
 } from "./services/directusService";
 import { Instrument } from "./types/instruments";
-import { Student, User } from "./types/users";
+import { Student, User, Teacher } from "./types/users";
 import { Schedule } from "./types/lessons";
+import { Role } from "./types/roles";
 
 const App: React.FC = () => {
   const [instruments, setInstruments] = useState<Instrument[]>([]);
@@ -27,6 +29,8 @@ const App: React.FC = () => {
     null
   );
 
+  const [roles, setRoles] = useState<Role[]>([]); // Peta antara role ID dan nama role
+
   // const [selectedInstrument, setSelectedInstrument] = useState<any>(null);
   // const [students, setStudents] = useState<any[]>([]); // State untuk menyimpan data siswa
 
@@ -38,12 +42,17 @@ const App: React.FC = () => {
       //   .then((data) => setSelectedInstrument(data.data));
       try {
         const data = await fetchCollectionData<Instrument>("instruments");
-        console.log("Fetched Instruments:", data); // Debugging log
+        // console.log("Fetched Instruments:", data); // Debugging log
         setInstruments(data);
 
         const dataUsers = await fetchCollectionUsersData<User>("users");
-        console.log("Fetched Students:", dataUsers); // Debugging log
+        // console.log("Fetched Students:", dataUsers); // Debugging log
         setUsers(dataUsers);
+
+        const dataRoles = await fetchRoleDetails(""); // Fetch roles
+        // console.log("Roles Data:", dataRoles); // Tambahkan log untuk debug
+        // setRoles(dataRoles as Role[]); // Cast hasil sebagai Role[]
+        setRoles(dataRoles);
       } catch (error) {
         console.error("Error fetching students:", error);
       }
@@ -52,16 +61,23 @@ const App: React.FC = () => {
     fetchData();
   }, []);
 
-  const handleViewDetails = async (instrumentId: number) => {
-    try {
-      const instrumentDetails = await fetchInstrumentDetails(instrumentId);
-      // console.log("Instrument Details:", instrumentDetails); // Debugging log
-      setSelectedInstrument(instrumentDetails);
-      // console.log("Students Array:", instrumentDetails.students);
-      console.log("Instrument Details Data:", instrumentDetails);
-    } catch (error) {
-      console.error("Error fetching instrument details:", error);
-    }
+  // const handleViewDetails = async (instrumentId: number) => {
+  //   try {
+  //     const instrumentDetails = await fetchInstrumentDetails(instrumentId);
+  //     // console.log("Instrument Details:", instrumentDetails); // Debugging log
+  //     setSelectedInstrument(instrumentDetails);
+  //     // console.log("Students Array:", instrumentDetails.students);
+  //     // console.log("Instrument Details Data:", instrumentDetails);
+  //   } catch (error) {
+  //     console.error("Error fetching instrument details:", error);
+  //   }
+  // };
+
+  const getRoleNameById = (roleId: string): string => {
+    // console.log("Roles in State:", roles); // Debugging log
+    // console.log("Searching Role ID:", roleId); // Debugging log
+    const role = roles.find((role) => role.id === roleId);
+    return role ? role.name : "Unknown Role";
   };
 
   const handleViewDetailsStudent = async (studentId: string) => {
@@ -101,147 +117,233 @@ const App: React.FC = () => {
       console.error("Error fetching schedule details:", error);
     }
   };
+  // Filter data untuk Student dan Teacher
+  const students = users.filter(
+    (user) => getRoleNameById(user.role) === "Student"
+  );
+  const teachers = users.filter(
+    (user) => getRoleNameById(user.role) === "Teacher"
+  );
 
   return (
     <div>
       <h1>Users</h1>
-      <ul>
-        {users.map((user) => (
-          <li key={user.id}>
-            {user.first_name} {user.last_name}
-            <button onClick={() => handleViewDetailsStudent(user.id)}>
-              {expandedStudentId === user.id
-                ? "Hide Student Details"
-                : "View Student Details"}
-            </button>
-            {expandedStudentId === user.id && studentDetails && (
-              <div style={{ marginTop: "10px", paddingLeft: "20px" }}>
-                <p>
-                  <strong>ID:</strong> {user.id}
-                </p>
-                <p>
-                  <strong>First Name:</strong> {user.first_name}
-                </p>
-                <p>
-                  <strong>Last Name:</strong> {user.last_name}
-                </p>
-                <p>
-                  <strong>Email:</strong> {user.email}
-                </p>
-                <p>
-                  <strong>Status:</strong> {user.status}
-                </p>
-                <p>
-                  <strong>Instruments:</strong>{" "}
-                  {user.student_instruments &&
-                  user.student_instruments.length > 0
-                    ? user.student_instruments
-                        .map(
-                          (relation) =>
-                            relation.instruments_id?.name || "Unknown"
-                        )
-                        .join(", ")
-                    : "No Instruments Assigned"}
-                </p>
-                {/* Tambahkan data lain yang relevan */}
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
 
-      <h1>Instruments</h1>
-      <ul>
-        {instruments.map((instrument) => (
-          <li key={instrument.id}>
-            {instrument.name}
-            <button onClick={() => handleViewDetails(instrument.id)}>
-              View Details
-            </button>
-          </li>
-        ))}
-      </ul>
-
-      {selectedInstrument && (
-        <div>
-          <h2>Instrument Details</h2>
-          <p>
-            <strong>Name:</strong> {selectedInstrument.name}
-          </p>
-
-          <h3>Students:</h3>
-          <ul>
-            {selectedInstrument.students?.map((student, index) => {
-              // console.log("Student Data:", student);
-              const studentData = student.students_id;
-              // Validasi apakah students_id ada
-              if (!student || !student.students_id) {
-                return <li key={index}>Unknown Student</li>;
-              }
-
-              return (
-                <li key={index}>
-                  {studentData.first_name} {studentData.last_name} (ID:{" "}
-                  {studentData.id})
-                  <button
-                    onClick={() => handleViewDetailsStudent(studentData.id)}
-                  >
-                    {expandedStudentId === studentData.id
-                      ? "Hide Student Details"
-                      : "View Student Details"}
+      {/* Tabel untuk Student */}
+      <h2>Students</h2>
+      <table border="1" style={{ borderCollapse: "collapse", width: "100%" }}>
+        <thead>
+          <tr>
+            <th>Role</th>
+            <th>Name</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {students.map((user) => (
+            <React.Fragment key={user.id}>
+              {/* Baris utama */}
+              <tr>
+                <td>{getRoleNameById(user.role)}</td>
+                <td>
+                  {user.first_name} {user.last_name}
+                </td>
+                <td>
+                  <button onClick={() => handleViewDetailsStudent(user.id)}>
+                    {expandedStudentId === user.id
+                      ? "Hide Details"
+                      : "View Details"}
                   </button>
-                  {expandedStudentId === studentData.id && studentDetails && (
-                    <div style={{ marginTop: "10px", paddingLeft: "20px" }}>
-                      <p>
-                        <strong>First Name:</strong> {studentData.first_name}
-                      </p>
-                      <p>
-                        <strong>Last Name:</strong> {studentData.last_name}
-                      </p>
-                      <p>
-                        <strong>Email:</strong> {studentData.email}
-                      </p>
-                      <p>
-                        <strong>Status:</strong> {studentData.status}
-                      </p>
-                      {/* <p>
-                        <strong>Instruments:</strong>{" "}
-                        {studentData.student_instruments.instruments_id.name}
-                      </p> */}
-                      {/* Tambahkan data lain yang relevan */}
-                    </div>
-                  )}
                   <button
                     onClick={() =>
-                      handleViewSchedule(studentData.id, selectedInstrument.id)
+                      handleViewSchedule(
+                        user.id,
+                        user.student_instruments?.[0]?.instruments_id?.id || 0
+                      )
                     }
                   >
                     View Schedule
                   </button>
-                </li>
-              );
-            })}
-          </ul>
-          <h3>Teachers:</h3>
-          <ul>
-            {selectedInstrument.teachers?.map((teacher, index) => {
-              // console.log("Student Data:", student);
-              const teacherData = teacher.teachers_id;
-              // Validasi apakah students_id ada
-              if (!teacher || !teacher.teachers_id) {
-                return <li key={index}>Unknown teacher</li>;
-              }
+                </td>
+              </tr>
 
-              return (
-                <li key={index}>
-                  {teacherData.first_name} {teacherData.last_name} (ID:{" "}
-                  {teacherData.id})
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
+              {/* Baris detail */}
+              {expandedStudentId === user.id && studentDetails && (
+                <tr>
+                  <td colSpan={3}>
+                    <div
+                      style={{ padding: "10px", backgroundColor: "#f9f9f9" }}
+                    >
+                      <p>
+                        <strong>ID:</strong> {user.id}
+                      </p>
+                      <p>
+                        <strong>First Name:</strong> {user.first_name}
+                      </p>
+                      <p>
+                        <strong>Last Name:</strong> {user.last_name}
+                      </p>
+                      <p>
+                        <strong>Email:</strong> {user.email}
+                      </p>
+                      <p>
+                        <strong>Status:</strong> {user.status}
+                      </p>
+                      <p>
+                        <strong>Instruments:</strong>{" "}
+                        {user.student_instruments &&
+                        user.student_instruments.length > 0
+                          ? user.student_instruments
+                              .map(
+                                (relation) =>
+                                  relation.instruments_id?.name || "Unknown"
+                              )
+                              .join(", ")
+                          : "No Instruments Assigned"}
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+
+              {/* Baris jadwal */}
+              {selectedSchedule && selectedSchedule.data.id === user.id && (
+                <tr>
+                  <td colSpan={3}>
+                    <div
+                      style={{ padding: "10px", backgroundColor: "#f2f2f2" }}
+                    >
+                      <h3>Schedule Details:</h3>
+                      {selectedSchedule.data.id &&
+                      selectedSchedule.data.id.length > 0 ? (
+                        <ul>
+                          {selectedSchedule.id.map((schedule, index) => (
+                            <li key={index}>
+                              {schedule.date} - {schedule.time} (
+                              {schedule.location})
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p>No schedule available for this student.</p>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </React.Fragment>
+          ))}
+        </tbody>
+      </table>
+
+      {/* Tabel untuk Teacher */}
+      <h2>Teachers</h2>
+      <table border="1" style={{ borderCollapse: "collapse", width: "100%" }}>
+        <thead>
+          <tr>
+            <th>Role</th>
+            <th>Name</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {teachers.map((user) => (
+            <React.Fragment key={user.id}>
+              {/* Baris utama */}
+              <tr>
+                <td>{getRoleNameById(user.role)}</td>
+                <td>
+                  {user.first_name} {user.last_name}
+                </td>
+                <td>
+                  <button onClick={() => handleViewDetailsStudent(user.id)}>
+                    {expandedStudentId === user.id
+                      ? "Hide Details"
+                      : "View Details"}
+                  </button>
+                  <button
+                    onClick={() =>
+                      handleViewSchedule(
+                        user.id,
+                        user.teacher_instruments?.[0]?.instruments_id?.id || 0
+                      )
+                    }
+                  >
+                    View Schedule
+                  </button>
+                </td>
+              </tr>
+
+              {/* Baris detail */}
+              {expandedStudentId === user.id && studentDetails && (
+                <tr>
+                  <td colSpan={3}>
+                    <div
+                      style={{ padding: "10px", backgroundColor: "#f9f9f9" }}
+                    >
+                      <p>
+                        <strong>ID:</strong> {user.id}
+                      </p>
+                      <p>
+                        <strong>First Name:</strong> {user.first_name}
+                      </p>
+                      <p>
+                        <strong>Last Name:</strong> {user.last_name}
+                      </p>
+                      <p>
+                        <strong>Email:</strong> {user.email}
+                      </p>
+                      <p>
+                        <strong>Status:</strong> {user.status}
+                      </p>
+                      <p>
+                        <strong>Instruments:</strong>{" "}
+                        {user.teacher_instruments &&
+                        user.teacher_instruments.length > 0
+                          ? user.teacher_instruments
+                              .map(
+                                (relation) =>
+                                  relation.instruments_id?.name || "Unknown"
+                              )
+                              .join(", ")
+                          : "No Instruments Assigned"}
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+
+              {/* Baris jadwal */}
+              {/* {selectedSchedule && selectedSchedule.teacher_id === user.id && (
+                <tr>
+                  <td colSpan={3}>
+                    <div
+                      style={{ padding: "10px", backgroundColor: "#f2f2f2" }}
+                    >
+                      <h3>Schedule Details:</h3>
+                      {selectedSchedule.schedule_items &&
+                      selectedSchedule.schedule_items.length > 0 ? (
+                        <ul>
+                          {selectedSchedule.schedule_items.map(
+                            (schedule, index) => (
+                              <li key={index}>
+                                {schedule.date} - {schedule.time} (
+                                {schedule.location})
+                              </li>
+                            )
+                          )}
+                        </ul>
+                      ) : (
+                        <p>No schedule available for this teacher.</p>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              )} */}
+            </React.Fragment>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };
