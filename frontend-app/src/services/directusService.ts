@@ -49,9 +49,7 @@ export const fetchRoleDetails = async (roleId: string) => {
 // Fungsi untuk mendapatkan relasi kompleks
 export const fetchInstrumentDetails = async (instrumentId: number) => {
   try {
-    // const response = await api.get(`/items/instruments/${instrumentId}?fields=*,students.students_id.id,students.students_id.first_name,students.students_id.last_name,teachers.teachers_id.id,teachers.teachers_id.first_name,teachers.teachers_id.last_name`);
     const response = await api.get(`/items/instruments/${instrumentId}?fields=*,students.students_id.student_instruments.id,students.students_id.*,teachers.teachers_id.*`);
-    console.log("Selected Instrument:", response.data.data);
     return response.data.data;
   } catch (error) {
     console.error('Error fetching instrument details:', error);
@@ -62,10 +60,7 @@ export const fetchInstrumentDetails = async (instrumentId: number) => {
 // Fungsi untuk mendapatkan relasi kompleks
 export const fetchStudentDetails = async (studentId: string) => {
   try {
-    // const response = await api.get(`/items/instruments/${instrumentId}?fields=*,students.students_id.id,students.students_id.first_name,students.students_id.last_name,teachers.teachers_id.id,teachers.teachers_id.first_name,teachers.teachers_id.last_name`);
-    // const response = await api.get(`/items/packages/?fields=*&filter[student]=${studentId}`);
     const response = await api.get(`/users/${studentId}?fields=*,student_instruments.instruments_id.id,student_instruments.instruments_id.name,teacher_instruments.instruments_id.id,teacher_instruments.instruments_id.name`);
-    console.log("Selected Student Details:", response.data.data);
     return response.data.data;
   } catch (error) {
     console.error('Error fetching student details:', error);
@@ -76,9 +71,7 @@ export const fetchStudentDetails = async (studentId: string) => {
 // Fungsi untuk mendapatkan relasi kompleks
 export const fetchStudentSchedule = async (studentId: string, instrumentId: number) => {
   try {
-    // const response = await api.get(`/items/instruments/${instrumentId}?fields=*,students.students_id.id,students.students_id.first_name,students.students_id.last_name,teachers.teachers_id.id,teachers.teachers_id.first_name,teachers.teachers_id.last_name`);
     const response = await api.get(`/items/packages/?fields=id,student,instrument,lessons,lessons.package.start_datetime&filter[student]=${studentId}&filter[instrument]=${instrumentId}`);
-    console.log("Selected Schedule Details:", response.data.data);
     return response.data.data;
   } catch (error) {
     console.error('Error fetching student schedule details:', error);
@@ -89,9 +82,7 @@ export const fetchStudentSchedule = async (studentId: string, instrumentId: numb
 // Fungsi untuk mendapatkan relasi kompleks
 export const fetchTeacherSchedule = async (studentId: string, instrumentId: number) => {
   try {
-    // const response = await api.get(`/items/instruments/${instrumentId}?fields=*,students.students_id.id,students.students_id.first_name,students.students_id.last_name,teachers.teachers_id.id,teachers.teachers_id.first_name,teachers.teachers_id.last_name`);
     const response = await api.get(`/items/packages/?fields=id,student,instrument,lessons,lessons.package.start_datetime&filter[teacher]=${studentId}&filter[instrument]=${instrumentId}`);
-    console.log("Selected Schedule Details:", response.data.data);
     return response.data.data;
   } catch (error) {
     console.error('Error fetching student schedule details:', error);

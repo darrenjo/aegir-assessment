@@ -6,6 +6,4 @@ export interface Instrument {
   name: string; // Nama instrumen
   students?: Student[]; // Relasi many-to-many untuk students
   teachers?: Teacher[]; // Relasi many-to-many untuk teachers
-  // students?: JunctionStudentsInstruments[]; // Relasi many-to-many untuk students
-  // teachers?: JunctionTeachersInstruments[]; // Relasi many-to-many untuk teachers
 }

@@ -22,6 +22,7 @@ const App: React.FC = () => {
   const [expandedStudentId, setExpandedStudentId] = useState<string | null>(
     null
   );
+  // const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [studentDetails, setStudentDetails] = useState<Student | null>(null);
 
   const [schedules, setSchedules] = useState<Lesson[]>([]);
@@ -31,16 +32,27 @@ const App: React.FC = () => {
 
   const [roles, setRoles] = useState<Role[]>([]); // Peta antara role ID dan nama role
 
+  // const [selectedInstrument, setSelectedInstrument] = useState<any>(null);
+  // const [students, setStudents] = useState<any[]>([]); // State untuk menyimpan data siswa
+
   useEffect(() => {
     const fetchData = async () => {
+      // // Fetch instrument data di awal, misalnya "Piano"
+      // fetch("http://localhost:8055/items/instruments/1")
+      //   .then((res) => res.json())
+      //   .then((data) => setSelectedInstrument(data.data));
       try {
         const data = await fetchCollectionData<Instrument>("instruments");
+        // console.log("Fetched Instruments:", data); // Debugging log
         setInstruments(data);
 
         const dataUsers = await fetchCollectionUsersData<User>("users");
+        // console.log("Fetched Students:", dataUsers); // Debugging log
         setUsers(dataUsers);
 
         const dataRoles = await fetchRoleDetails(""); // Fetch roles
+        // console.log("Roles Data:", dataRoles); // Tambahkan log untuk debug
+        // setRoles(dataRoles as Role[]); // Cast hasil sebagai Role[]
         setRoles(dataRoles);
       } catch (error) {
         console.error("Error fetching students:", error);
@@ -50,7 +62,21 @@ const App: React.FC = () => {
     fetchData();
   }, []);
 
+  // const handleViewDetails = async (instrumentId: number) => {
+  //   try {
+  //     const instrumentDetails = await fetchInstrumentDetails(instrumentId);
+  //     // console.log("Instrument Details:", instrumentDetails); // Debugging log
+  //     setSelectedInstrument(instrumentDetails);
+  //     // console.log("Students Array:", instrumentDetails.students);
+  //     // console.log("Instrument Details Data:", instrumentDetails);
+  //   } catch (error) {
+  //     console.error("Error fetching instrument details:", error);
+  //   }
+  // };
+
   const getRoleNameById = (roleId: string): string => {
+    // console.log("Roles in State:", roles); // Debugging log
+    // console.log("Searching Role ID:", roleId); // Debugging log
     const role = roles.find((role) => role.id === roleId);
     return role ? role.name : "Unknown Role";
   };
@@ -63,8 +89,12 @@ const App: React.FC = () => {
     } else {
       try {
         const studentDetails = await fetchStudentDetails(studentId);
+        // console.log("Instrument Details:", instrumentDetails); // Debugging log
+        // setSelectedStudent(studentDetails);
+        // console.log("Students Array:", instrumentDetails.students);
         setExpandedStudentId(studentId);
         setStudentDetails(studentDetails);
+        // console.log("Student Details Data:", studentDetails);
       } catch (error) {
         console.error("Error fetching student details:", error);
       }
@@ -80,7 +110,6 @@ const App: React.FC = () => {
       console.error("Error fetching schedule details:", error);
     }
   };
-  
   // Filter data untuk Student dan Teacher
   const students = users.filter(
     (user) => getRoleNameById(user.role) === "Student"
