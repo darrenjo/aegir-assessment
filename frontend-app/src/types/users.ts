@@ -33,13 +33,13 @@ export interface User {
         id: number;
         name: string;
       };
-  }>;
-  teacher_instruments: Array <{
-    instruments_id: {
-      id: number;
-      name: string;
-    };
-  }>;
+    }>;
+    teacher_instruments: Array <{
+      instruments_id: {
+        id: number;
+        name: string;
+      };
+    }>;
 }
 
 export interface Teacher {
@@ -54,11 +54,11 @@ export interface Teacher {
       id: number;
       name: string;
     };
-}>;
-teacher_instruments: Array <{
-  instruments_id: {
-    id: number;
-    name: string;
-  };
-}>;
+  }>;
+  teacher_instruments: Array <{
+    instruments_id: {
+      id: number;
+      name: string;
+    };
+  }>;
 }

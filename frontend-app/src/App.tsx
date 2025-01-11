@@ -3,13 +3,14 @@ import {
   fetchCollectionData,
   fetchCollectionUsersData,
   fetchInstrumentDetails,
+  fetchTeacherSchedule,
   fetchStudentDetails,
   fetchStudentSchedule,
   fetchRoleDetails,
 } from "./services/directusService";
 import { Instrument } from "./types/instruments";
 import { Student, User, Teacher } from "./types/users";
-import { Schedule } from "./types/lessons";
+import { Lesson } from "./types/lessons";
 import { Role } from "./types/roles";
 
 const App: React.FC = () => {
@@ -24,8 +25,8 @@ const App: React.FC = () => {
   // const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [studentDetails, setStudentDetails] = useState<Student | null>(null);
 
-  const [schedules, setSchedules] = useState<Student[]>([]);
-  const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(
+  const [schedules, setSchedules] = useState<Lesson[]>([]);
+  const [expandedScheduleId, setExpandedScheduleId] = useState<string | null>(
     null
   );
 
@@ -100,19 +101,11 @@ const App: React.FC = () => {
     }
   };
 
-  const handleViewSchedule = async (
-    studentId: string,
-    instrumentId: number
-  ) => {
+  const handleViewSchedule = async (studentId: string, instrumentId: number) => {
     try {
-      const scheduleDetails = await fetchStudentSchedule(
-        studentId,
-        instrumentId
-      );
-      // console.log("Instrument Details:", instrumentDetails); // Debugging log
-      setSelectedSchedule(scheduleDetails);
-      // console.log("Students Array:", instrumentDetails.students);
-      console.log("Schedule Details Data:", scheduleDetails);
+      const scheduleDetails = await fetchStudentSchedule(studentId, instrumentId);
+      setSchedules(scheduleDetails);
+      setExpandedScheduleId(studentId); // Menandai jadwal untuk mahasiswa yang dipilih
     } catch (error) {
       console.error("Error fetching schedule details:", error);
     }
@@ -154,15 +147,20 @@ const App: React.FC = () => {
                       ? "Hide Details"
                       : "View Details"}
                   </button>
-                  <button
-                    onClick={() =>
-                      handleViewSchedule(
-                        user.id,
-                        user.student_instruments?.[0]?.instruments_id?.id || 0
-                      )
-                    }
-                  >
-                    View Schedule
+                  <button onClick={() => {
+                        if (expandedScheduleId === user.id) {
+                          // Jika sudah diperluas, sembunyikan
+                          setExpandedScheduleId(null);
+                        } else {
+                          // Jika belum diperluas, tampilkan jadwal
+                          handleViewSchedule(
+                            user.id,
+                            user.student_instruments?.[0]?.instruments_id?.id || 0
+                          );
+                        }
+                      }}
+                    >
+                      {expandedScheduleId === user.id ? "Hide Schedule" : "View Schedule"}
                   </button>
                 </td>
               </tr>
@@ -207,26 +205,35 @@ const App: React.FC = () => {
               )}
 
               {/* Baris jadwal */}
-              {selectedSchedule && selectedSchedule.data.id === user.id && (
+              {expandedScheduleId === user.id && schedules.length > 0 && (
                 <tr>
                   <td colSpan={3}>
-                    <div
-                      style={{ padding: "10px", backgroundColor: "#f2f2f2" }}
-                    >
+                    <div style={{ padding: "10px", backgroundColor: "#f2f2f2" }}>
                       <h3>Schedule Details:</h3>
-                      {selectedSchedule.data.id &&
-                      selectedSchedule.data.id.length > 0 ? (
-                        <ul>
-                          {selectedSchedule.id.map((schedule, index) => (
-                            <li key={index}>
-                              {schedule.date} - {schedule.time} (
-                              {schedule.location})
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p>No schedule available for this student.</p>
-                      )}
+                      <ul>
+                      {schedules.map((schedule, index) => (
+                          <li key={index}>
+                            <strong>Instrument:</strong> {schedule.instrument}
+                            {schedule.lessons.map((lesson, lessonIndex) => (
+                              <div key={lessonIndex}>
+                                <strong>Lesson:</strong>{" "}
+                                {new Date(lesson.package.start_datetime).toLocaleString()}
+                              </div>
+                            ))}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </td>
+                </tr>
+              )}
+
+              {expandedScheduleId === user.id && schedules.length === 0 && (
+                <tr>
+                  <td colSpan={3}>
+                    <div style={{ padding: "10px", backgroundColor: "#f2f2f2" }}>
+                      <h3>Schedule Details:</h3>
+                      <p>No schedule available for this user.</p>
                     </div>
                   </td>
                 </tr>
@@ -261,15 +268,20 @@ const App: React.FC = () => {
                       ? "Hide Details"
                       : "View Details"}
                   </button>
-                  <button
-                    onClick={() =>
-                      handleViewSchedule(
-                        user.id,
-                        user.teacher_instruments?.[0]?.instruments_id?.id || 0
-                      )
-                    }
-                  >
-                    View Schedule
+                  <button onClick={() => {
+                        if (expandedScheduleId === user.id) {
+                          // Jika sudah diperluas, sembunyikan
+                          setExpandedScheduleId(null);
+                        } else {
+                          // Jika belum diperluas, tampilkan jadwal
+                          handleViewSchedule(
+                            user.id,
+                            user.student_instruments?.[0]?.instruments_id?.id || 0
+                          );
+                        }
+                      }}
+                    >
+                      {expandedScheduleId === user.id ? "Hide Schedule" : "View Schedule"}
                   </button>
                 </td>
               </tr>
@@ -312,34 +324,41 @@ const App: React.FC = () => {
                   </td>
                 </tr>
               )}
+              
 
-              {/* Baris jadwal */}
-              {/* {selectedSchedule && selectedSchedule.teacher_id === user.id && (
+              {expandedScheduleId === user.id && schedules.length > 0 && (
                 <tr>
                   <td colSpan={3}>
-                    <div
-                      style={{ padding: "10px", backgroundColor: "#f2f2f2" }}
-                    >
+                    <div style={{ padding: "10px", backgroundColor: "#f2f2f2" }}>
                       <h3>Schedule Details:</h3>
-                      {selectedSchedule.schedule_items &&
-                      selectedSchedule.schedule_items.length > 0 ? (
-                        <ul>
-                          {selectedSchedule.schedule_items.map(
-                            (schedule, index) => (
-                              <li key={index}>
-                                {schedule.date} - {schedule.time} (
-                                {schedule.location})
-                              </li>
-                            )
-                          )}
-                        </ul>
-                      ) : (
-                        <p>No schedule available for this teacher.</p>
-                      )}
+                      <ul>
+                      {schedules.map((schedule, index) => (
+                          <li key={index}>
+                            <strong>Instrument:</strong> {schedule.instrument}
+                            {schedule.lessons.map((lesson, lessonIndex) => (
+                              <div key={lessonIndex}>
+                                <strong>Lesson:</strong>{" "}
+                                {new Date(lesson.package.start_datetime).toLocaleString()}
+                              </div>
+                            ))}
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   </td>
                 </tr>
-              )} */}
+              )}
+
+              {expandedScheduleId === user.id && schedules.length === 0 && (
+                <tr>
+                  <td colSpan={3}>
+                    <div style={{ padding: "10px", backgroundColor: "#f2f2f2" }}>
+                      <h3>Schedule Details:</h3>
+                      <p>No schedule available for this user.</p>
+                    </div>
+                  </td>
+                </tr>
+              )}
             </React.Fragment>
           ))}
         </tbody>
